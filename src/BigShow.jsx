@@ -38,6 +38,7 @@ function BigShow() {
     setQuestions(questions.slice(1));
   }
 
+
   async function fetchData(){
       fetch("https://opentdb.com/api.php?amount=15&type=multiple").then(r=>r.json()).then(r=>{setQuestions(r.results), console.log(r.results)}).catch(e=>console.log(e));
   }
@@ -98,7 +99,15 @@ function QuestionBlock({questionData, next, number, restart, prices, time}){
 
   const [correct, setCorrect] = useState(null);
 
-  const options = (questionData) ? [questionData.correct_answer, ...questionData.incorrect_answers] : [];
+  function shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  const options = (questionData) ? shuffleArray([questionData.correct_answer, ...questionData.incorrect_answers]) : [];
   const [answers, setAnswers] = useState(options);
 
   useEffect(() => {
@@ -165,7 +174,7 @@ function QuestionBlock({questionData, next, number, restart, prices, time}){
         <button className="w-full text-2xl px-5 py-3 bg-blue-400 text-white font-semibold rounded-lg shadow-md  focus:outline-none focus:ring-2 focus:ring-yellow-500 hover:bg-blue-600" onClick={() => navigate('/')} >Back to the menu</button>
       </> : null
       }
-      <h2 className='text-blue-500 text-2xl'>Power ups</h2>
+      {(powerUp1 || powerUp2 || powerUp3 || powerUp4) ? <h2 className='text-blue-500 text-3xl'>Power ups</h2> : null}
       <div className='flex gap-3'>
         { powerUp1 && time!=-1? <button className='bg-blue-500 px-5 py-3 text-white font-semibold rounded-lg focus:outline-none shadow-md hover:bg-blue-600' onClick={()=>{setPaused(true), setPowerUp1(false)}}>Time-Out</button> : null }
         { powerUp2 ? <button className='bg-blue-500 px-5 py-3 text-white font-semibold rounded-lg focus:outline-none shadow-md hover:bg-blue-600' onClick={()=>deleteAnwer()}>Delete one answer</button> : null }
