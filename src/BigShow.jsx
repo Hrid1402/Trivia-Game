@@ -67,6 +67,33 @@ function QuestionBlock({questionData, next, number, restart, prices, time}){
   const [powerUp2, setPowerUp2] = useState(true);
   const [powerUp3, setPowerUp3] = useState(true);
   const [powerUp4, setPowerUp4] = useState(true);
+  const [askTheAudience, setAskTheAudience] = useState(false);
+
+  function getCrowdAnswer(correctAnswer, fakeAnswers) {
+    const totalOptions = fakeAnswers.length + 1;
+    
+    const isAccurate = Math.random() < 0.8;
+    
+    let percentages;
+    if (isAccurate) {
+      const basePercentage = 100 / totalOptions;
+      percentages = [
+        basePercentage + Math.random() * 20,
+        ...fakeAnswers.map(() => basePercentage - Math.random() * 10)
+      ];
+    } else {
+      percentages = Array(totalOptions).fill(0).map(() => Math.random() * 100);
+    }
+    
+    const total = percentages.reduce((a, b) => a + b, 0);
+    percentages = percentages.map(p => (p / total * 100).toFixed(1));
+    
+    const answers = [correctAnswer, ...fakeAnswers];
+    return answers.map((answer, index) => ({
+      name: answer,
+      percentage: percentages[index]
+    }));
+  }
 
 
   const [correct, setCorrect] = useState(null);
@@ -78,6 +105,7 @@ function QuestionBlock({questionData, next, number, restart, prices, time}){
     setAnswers(options);
     setPaused(false);
     setOnReset(!onReset);
+    setAskTheAudience(false);
   }, [questionData]);
 
 
@@ -133,17 +161,27 @@ function QuestionBlock({questionData, next, number, restart, prices, time}){
       <button className="w-full text-2xl  px-5 py-3 bg-blue-400 text-white font-semibold rounded-lg shadow-md  focus:outline-none focus:ring-2 focus:ring-yellow-500 hover:bg-blue-600" onClick={()=>{next(), setCorrect(null), setHiddenIndex(null)}} >Next!</button> 
       : correct == false ?
       <>
-        <button className="w-full text-2xl px-5 py-3 bg-blue-400 text-white font-semibold rounded-lg shadow-md  focus:outline-none focus:ring-2 focus:ring-yellow-500 hover:bg-blue-600" onClick={()=>{restart(), setCorrect(null), setHiddenIndex(null), setPowerUp1(true), setPowerUp2(true), setPowerUp3(true)}} >Try again</button>
+        <button className="w-full text-2xl px-5 py-3 bg-blue-400 text-white font-semibold rounded-lg shadow-md  focus:outline-none focus:ring-2 focus:ring-yellow-500 hover:bg-blue-600" onClick={()=>{restart(), setCorrect(null), setHiddenIndex(null), setPowerUp1(true), setPowerUp2(true), setPowerUp3(true), setPowerUp4(true)}} >Try again</button>
         <button className="w-full text-2xl px-5 py-3 bg-blue-400 text-white font-semibold rounded-lg shadow-md  focus:outline-none focus:ring-2 focus:ring-yellow-500 hover:bg-blue-600" onClick={() => navigate('/')} >Back to the menu</button>
       </> : null
       }
       <h2 className='text-blue-500 text-2xl'>Power ups</h2>
       <div className='flex gap-3'>
-        { powerUp1 && time!=-1? <button className='bg-blue-500 px-5 py-3 text-white font-semibold rounded-lg focus:outline-none shadow-md hover:bg-blue-600' onClick={()=>{setPaused(true), setPowerUp1(false)}}>Freeze time</button> : null }
+        { powerUp1 && time!=-1? <button className='bg-blue-500 px-5 py-3 text-white font-semibold rounded-lg focus:outline-none shadow-md hover:bg-blue-600' onClick={()=>{setPaused(true), setPowerUp1(false)}}>Time-Out</button> : null }
         { powerUp2 ? <button className='bg-blue-500 px-5 py-3 text-white font-semibold rounded-lg focus:outline-none shadow-md hover:bg-blue-600' onClick={()=>deleteAnwer()}>Delete one answer</button> : null }
         { powerUp3 ? <button className='bg-blue-500 px-5 py-3 text-white font-semibold rounded-lg focus:outline-none shadow-md hover:bg-blue-600' onClick={()=>{optionClick(true), setPowerUp3(false)}}>Skip question</button> : null }
-        
+        { powerUp4 ? <button className='bg-blue-500 px-5 py-3 text-white font-semibold rounded-lg focus:outline-none shadow-md hover:bg-blue-600' onClick={()=>{setAskTheAudience(true), setPowerUp4(false)}}>Ask the Audience</button> : null }
       </div>
+      {askTheAudience ?
+      <>
+        <h2 className='font-bold text-3xl text-blue-700'>Let’s see what the crowd thinks…</h2>
+        <div className='flex flex-col gap-1'>
+          {getCrowdAnswer(questionData.correct_answer, questionData.incorrect_answers).map(d=>{
+            return <h2 className='font-bold text-2xl text-blue-700'>{"█".repeat((d.percentage/100)*20)}  {d.percentage}%  {d.name} </h2>         
+          })}
+        </div> 
+      </>
+      : null}
       
     </div>
 
