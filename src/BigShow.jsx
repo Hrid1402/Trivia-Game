@@ -7,10 +7,13 @@ import LoadingGif  from './assets/loading.gif'
 
 let lastTime = null;
 let lastCategory = "any";
+let lastDifficulty = "any";
+
 function BigShow() {
   const [start, setStart] = useState(false);
   const [time, setTime] = useState(null);
   const [category, setCategory] = useState(lastCategory);
+  const [difficulty, setDifficulty] = useState(lastDifficulty);
   const [questions, setQuestions] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -66,11 +69,15 @@ function BigShow() {
     }
   }, [category, start, refreshTrigger]);
 
-  function startGame(time, selectedCategory){
+  function startGame(time, selectedCategory, selectedDifficulty){
     setStart(true);
     if(time != undefined){
       setTime(time);
-      time = lastTime;
+      lastTime = time;
+    }
+    if(selectedDifficulty != undefined){
+      setDifficulty(selectedDifficulty);
+      lastDifficulty = selectedDifficulty;
     }
     if(selectedCategory != undefined){
       setCategory(selectedCategory);
@@ -91,9 +98,9 @@ function BigShow() {
       setIsLoading(true);
       await new Promise(resolve => setTimeout(resolve, 2000));
       let url = "https://opentdb.com/api.php?amount=15&type=multiple" + ((category != "any" && category!= undefined) ? ("&category=" + category) : "");
+      url = url + ((difficulty != "any" && difficulty != undefined) ? ("&difficulty=" + difficulty) : "");
       console.log("url: " + url);
-      fetch(url).then(r=>r.json()).then(r=>{setQuestions(r.results), console.log(r.results)}).catch(e=>console.log(e));
-      setIsLoading(false);
+      fetch(url).then(r=>r.json()).then(r=>{setQuestions(r.results), console.log(r.results), setIsLoading(false)}).catch(e=>console.log(e));
   }
 
   return (
@@ -104,9 +111,11 @@ function BigShow() {
         
         {start && questions ? <>
         {category != "any" ?
-          <div >
-            <h2 className='text-3xl'>Category: {categoryNames[category]}</h2>
-          </div> : 
+          <h2 className='text-3xl'><strong>Category: </strong> {categoryNames[category]}</h2>: 
+          null
+        }
+        {difficulty != "any" ?
+          <h2 className='text-3xl'><strong>Difficulty: 🧠</strong>{difficulty}</h2> : 
           null
         }
         {!isLoading ? <QuestionBlock questionData={questions[0]} next={nextQuestion} number={16-questions.length} restart={startGame} prices={prices} time={time} key={uuidv4()}/> : null}
@@ -265,6 +274,7 @@ function Dialog({start}){
   const [open, setOpen] = useState(true);
   const [selectedTime, setSelectedTime] = useState(30);
   const [selectedCategory, setSelectedCategory] = useState("any");
+  const [selectedDifficulty, setSelectedDifficulty] = useState("any");
 
 
   const handleChange = (event) => {
@@ -275,15 +285,19 @@ function Dialog({start}){
     setSelectedCategory(event.target.value);
   };
 
+  const handleDifficultyChange = (event) => {
+    setSelectedDifficulty(event.target.value);
+  };
+
   function saveConfig(){
     setOpen(!open);
     console.log("time:" + selectedTime);
     console.log("category: " + selectedCategory);
-    start(selectedTime, selectedCategory);
+    start(selectedTime, selectedCategory, selectedDifficulty);
   }
   return(
-    <dialog open={open} className='backdrop:bg-black/50 backdrop:backdrop-blur-sm p-0 bg-transparent w-full max-w-lg rounded-lg shadow-xl m-auto'>
-            <div className="bg-white rounded-lg p-6">
+    <dialog open={open} className='backdrop:bg-black/50 backdrop:backdrop-blur-sm p-0 bg-transparent w-full max-w-lg rounded-lg shadow-xl mt-10 '>
+            <div className="bg-white rounded-lg p-6 h-full w-full flex flex-col justify-center">
               <h1 className='text-4xl'>Configuration</h1>
               <div className='flex flex-col'>
                 <h2 className='text-2xl'>Set time for each question:</h2>
@@ -305,7 +319,7 @@ function Dialog({start}){
                 </label>
 
                 <h2 className='text-2xl'>Select Category:</h2>
-                <select name="trivia_category" className='pt-2 pb-2' onChange={handleCategoryChange}>
+                <select name="trivia_category" className='pt-2 pb-2 w-full border border-yellow-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 mb-6' onChange={handleCategoryChange}>
                   <option value="any">All Categories</option>
                   <option value="9">General Knowledge</option>
                   <option value="10">Books</option>
@@ -332,6 +346,15 @@ function Dialog({start}){
                   <option value="31">Anime & Manga</option>
                   <option value="32">Cartoons</option>
                 </select>
+                <h2 className='text-2xl'>Select Difficulty:</h2>
+
+                <select name="trivia_difficulty" className="pt-2 pb-2 w-full border border-yellow-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 mb-6" onChange={handleDifficultyChange}>
+                  <option value="any">Surprise Me!</option>
+                  <option value="easy">Beginner</option>
+                  <option value="medium">Intermediate</option>
+                  <option value="hard">Expert</option>
+                </select>
+
                 
 
                 <button className=' text-2xl w-64 px-5 py-3 bg-yellow-500 text-white font-semibold rounded-lg shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500' onClick={()=>saveConfig()}>Start</button>
