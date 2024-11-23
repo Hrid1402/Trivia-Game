@@ -3,11 +3,21 @@ import he from 'he';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import Timer from './Timer.jsx';
-import LoadingGif  from './assets/loading.gif'
+import LoadingGif  from './assets/loading.gif';
+import quizTheme from './assets/quizSong.mp3';
+import correctMusic from './assets/correct.mp3';
+import incorrectMusic from './assets/incorrect.mp3';
+
+const themeSong = new Audio(quizTheme);
+const correctSFX = new Audio(correctMusic);
+const incorrectSFX = new Audio(incorrectMusic);
+
+themeSong.loop = true;
 
 let lastTime = null;
 let lastCategory = "any";
 let lastDifficulty = "any";
+
 
 function BigShow() {
   const [start, setStart] = useState(false);
@@ -99,8 +109,7 @@ function BigShow() {
       await new Promise(resolve => setTimeout(resolve, 2000));
       let url = "https://opentdb.com/api.php?amount=15&type=multiple" + ((category != "any" && category!= undefined) ? ("&category=" + category) : "");
       url = url + ((difficulty != "any" && difficulty != undefined) ? ("&difficulty=" + difficulty) : "");
-      console.log("url: " + url);
-      fetch(url).then(r=>r.json()).then(r=>{setQuestions(r.results), console.log(r.results), setIsLoading(false)}).catch(e=>console.log(e));
+      fetch(url).then(r=>r.json()).then(r=>{setQuestions(r.results), setIsLoading(false)}).catch(e=>console.log(e));
   }
 
   return (
@@ -184,6 +193,7 @@ function QuestionBlock({questionData, next, number, restart, prices, time}){
   const [answers, setAnswers] = useState(options);
 
   useEffect(() => {
+    themeSong.play();
     setAnswers(options);
     setPaused(false);
     setOnReset(!onReset);
@@ -192,11 +202,14 @@ function QuestionBlock({questionData, next, number, restart, prices, time}){
 
 
   function optionClick(correct){
+    themeSong.pause()
+    themeSong.currentTime = 0;
+
     if(correct){
-      console.log("Correct!");
+      correctSFX.play();
       setCorrect(true);
     }else{
-      console.log("Bad!");
+      incorrectSFX.play();
       setCorrect(false);
     }
     setPaused(true);
@@ -363,7 +376,7 @@ function Dialog({start}){
 
                 
 
-                <button className=' text-2xl w-64 px-5 py-3 bg-yellow-500 text-white font-semibold rounded-lg shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500' onClick={()=>saveConfig()}>Start</button>
+                <button className=' text-2xl w-64 px-5 py-3 bg-yellow-500 text-white font-semibold rounded-lg shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500' onClick={()=>{saveConfig()}}>Start</button>
               </div>
             </div>
         </dialog>
