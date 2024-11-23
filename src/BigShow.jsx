@@ -3,6 +3,7 @@ import he from 'he';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import Timer from './Timer.jsx';
+import LoadingGif  from './assets/loading.gif'
 
 let lastTime = null;
 let lastCategory = "any";
@@ -12,6 +13,8 @@ function BigShow() {
   const [category, setCategory] = useState(lastCategory);
   const [questions, setQuestions] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const [isLoading, setIsLoading] = useState(false);
   const prices = [
     "$100",     
     "$200",     
@@ -85,16 +88,19 @@ function BigShow() {
 
 
   async function fetchData(){
+      setIsLoading(true);
+      await new Promise(resolve => setTimeout(resolve, 2000));
       let url = "https://opentdb.com/api.php?amount=15&type=multiple" + ((category != "any" && category!= undefined) ? ("&category=" + category) : "");
       console.log("url: " + url);
       fetch(url).then(r=>r.json()).then(r=>{setQuestions(r.results), console.log(r.results)}).catch(e=>console.log(e));
+      setIsLoading(false);
   }
 
   return (
     <>
       <Dialog start={startGame}></Dialog>
       <div className='menu h-screen bg-yellow-50 flex justify-center gap-5 items-center flex-col'>
-        
+        {isLoading && <img src={LoadingGif} alt="Loading..." className='select-none w-[30%] h-[50%]'/>}
         
         {start && questions ? <>
         {category != "any" ?
@@ -103,7 +109,7 @@ function BigShow() {
           </div> : 
           null
         }
-        <QuestionBlock questionData={questions[0]} next={nextQuestion} number={16-questions.length} restart={startGame} prices={prices} time={time}/>
+        {!isLoading ? <QuestionBlock questionData={questions[0]} next={nextQuestion} number={16-questions.length} restart={startGame} prices={prices} time={time} key={uuidv4()}/> : null}
         </>
         : null}
       </div>
