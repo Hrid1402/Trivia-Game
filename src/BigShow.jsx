@@ -4,10 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import Timer from './Timer.jsx';
 
+let lastTime = null;
+let lastCategory = "any";
 function BigShow() {
   const [start, setStart] = useState(false);
   const [time, setTime] = useState(null);
+  const [category, setCategory] = useState(lastCategory);
   const [questions, setQuestions] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const prices = [
     "$100",     
     "$200",     
@@ -25,13 +29,54 @@ function BigShow() {
     "$500,000",  
     "$1 MILLION" 
   ];
+  const categoryNames = {
+    "any": "All Categories",
+    "9": "General Knowledge",
+    "10": "Books",
+    "11": "Movies",
+    "12": "Music",
+    "13": "Musicals & Theatres",
+    "14": "TV Shows",
+    "15": "Video Games",
+    "16": "Board Games",
+    "17": "Science & Nature",
+    "18": "Computers",
+    "19": "Math",
+    "20": "Mythology",
+    "21": "Sports",
+    "22": "Geography",
+    "23": "History",
+    "24": "Politics",
+    "25": "Art",
+    "26": "Famous People",
+    "27": "Animals",
+    "28": "Vehicles",
+    "29": "Comics",
+    "30": "Gadgets",
+    "31": "Anime & Manga",
+    "32": "Cartoons",
+  };
   
+  useEffect(() => {
+    if (start) {
+      fetchData();
+    }
+  }, [category, start, refreshTrigger]);
 
-  function startGame(time){
+  function startGame(time, selectedCategory){
     setStart(true);
-    setTime(time);
-    console.log("activated!");
-    fetchData();
+    if(time != undefined){
+      setTime(time);
+      time = lastTime;
+    }
+    if(selectedCategory != undefined){
+      setCategory(selectedCategory);
+      lastCategory = selectedCategory;
+    }else{
+      setRefreshTrigger(prev => prev + 1);
+    }
+
+    
   }
   function nextQuestion(){
     console.log("Next!!");
@@ -40,7 +85,9 @@ function BigShow() {
 
 
   async function fetchData(){
-      fetch("https://opentdb.com/api.php?amount=15&type=multiple").then(r=>r.json()).then(r=>{setQuestions(r.results), console.log(r.results)}).catch(e=>console.log(e));
+      let url = "https://opentdb.com/api.php?amount=15&type=multiple" + ((category != "any" && category!= undefined) ? ("&category=" + category) : "");
+      console.log("url: " + url);
+      fetch(url).then(r=>r.json()).then(r=>{setQuestions(r.results), console.log(r.results)}).catch(e=>console.log(e));
   }
 
   return (
@@ -48,8 +95,14 @@ function BigShow() {
       <Dialog start={startGame}></Dialog>
       <div className='menu h-screen bg-yellow-50 flex justify-center gap-5 items-center flex-col'>
         
-        <div>Big show</div>
+        
         {start && questions ? <>
+        {category != "any" ?
+          <div >
+            <h2 className='text-3xl'>Category: {categoryNames[category]}</h2>
+          </div> : 
+          null
+        }
         <QuestionBlock questionData={questions[0]} next={nextQuestion} number={16-questions.length} restart={startGame} prices={prices} time={time}/>
         </>
         : null}
@@ -174,13 +227,18 @@ function QuestionBlock({questionData, next, number, restart, prices, time}){
         <button className="w-full text-2xl px-5 py-3 bg-blue-400 text-white font-semibold rounded-lg shadow-md  focus:outline-none focus:ring-2 focus:ring-yellow-500 hover:bg-blue-600" onClick={() => navigate('/')} >Back to the menu</button>
       </> : null
       }
-      {(powerUp1 || powerUp2 || powerUp3 || powerUp4) ? <h2 className='text-blue-500 text-3xl'>Power ups</h2> : null}
-      <div className='flex gap-3'>
-        { powerUp1 && time!=-1? <button className='bg-blue-500 px-5 py-3 text-white font-semibold rounded-lg focus:outline-none shadow-md hover:bg-blue-600' onClick={()=>{setPaused(true), setPowerUp1(false)}}>Time-Out</button> : null }
-        { powerUp2 ? <button className='bg-blue-500 px-5 py-3 text-white font-semibold rounded-lg focus:outline-none shadow-md hover:bg-blue-600' onClick={()=>deleteAnwer()}>Delete one answer</button> : null }
-        { powerUp3 ? <button className='bg-blue-500 px-5 py-3 text-white font-semibold rounded-lg focus:outline-none shadow-md hover:bg-blue-600' onClick={()=>{optionClick(true), setPowerUp3(false)}}>Skip question</button> : null }
-        { powerUp4 ? <button className='bg-blue-500 px-5 py-3 text-white font-semibold rounded-lg focus:outline-none shadow-md hover:bg-blue-600' onClick={()=>{setAskTheAudience(true), setPowerUp4(false)}}>Ask the Audience</button> : null }
-      </div>
+      {(powerUp1 || powerUp2 || powerUp3 || powerUp4) && correct!=false ? <h2 className='text-blue-500 text-3xl'>Power ups</h2> : null}
+      {
+        correct!=false ? 
+        <div className='flex gap-3'>
+          { powerUp1 && time!=-1? <button className='bg-blue-500 px-5 py-3 text-white font-semibold rounded-lg focus:outline-none shadow-md hover:bg-blue-600' onClick={()=>{setPaused(true), setPowerUp1(false)}}>Time-Out</button> : null }
+          { powerUp2 ? <button className='bg-blue-500 px-5 py-3 text-white font-semibold rounded-lg focus:outline-none shadow-md hover:bg-blue-600' onClick={()=>deleteAnwer()}>Delete one answer</button> : null }
+          { powerUp3 ? <button className='bg-blue-500 px-5 py-3 text-white font-semibold rounded-lg focus:outline-none shadow-md hover:bg-blue-600' onClick={()=>{optionClick(true), setPowerUp3(false)}}>Skip question</button> : null }
+          { powerUp4 ? <button className='bg-blue-500 px-5 py-3 text-white font-semibold rounded-lg focus:outline-none shadow-md hover:bg-blue-600' onClick={()=>{setAskTheAudience(true), setPowerUp4(false)}}>Ask the Audience</button> : null }
+        </div> 
+        : null
+      }
+      
       {askTheAudience ?
       <>
         <h2 className='font-bold text-3xl text-blue-700'>Let’s see what the crowd thinks…</h2>
@@ -200,15 +258,22 @@ function QuestionBlock({questionData, next, number, restart, prices, time}){
 function Dialog({start}){
   const [open, setOpen] = useState(true);
   const [selectedTime, setSelectedTime] = useState(30);
+  const [selectedCategory, setSelectedCategory] = useState("any");
+
 
   const handleChange = (event) => {
     setSelectedTime(event.target.value);
   };
 
+  const handleCategoryChange = (event) => {
+    setSelectedCategory(event.target.value);
+  };
+
   function saveConfig(){
     setOpen(!open);
     console.log("time:" + selectedTime);
-    start(selectedTime);
+    console.log("category: " + selectedCategory);
+    start(selectedTime, selectedCategory);
   }
   return(
     <dialog open={open} className='backdrop:bg-black/50 backdrop:backdrop-blur-sm p-0 bg-transparent w-full max-w-lg rounded-lg shadow-xl m-auto'>
@@ -232,6 +297,37 @@ function Dialog({start}){
                   <input type="radio" name="time" value={-1} onChange={handleChange}/>
                   No limit
                 </label>
+
+                <h2 className='text-2xl'>Select Category:</h2>
+                <select name="trivia_category" className='pt-2 pb-2' onChange={handleCategoryChange}>
+                  <option value="any">All Categories</option>
+                  <option value="9">General Knowledge</option>
+                  <option value="10">Books</option>
+                  <option value="11">Movies</option>
+                  <option value="12">Music</option>
+                  <option value="13">Musicals & Theatres</option>
+                  <option value="14">TV Shows</option>
+                  <option value="15">Video Games</option>
+                  <option value="16">Board Games</option>
+                  <option value="17">Science & Nature</option>
+                  <option value="18">Computers</option>
+                  <option value="19">Math</option>
+                  <option value="20">Mythology</option>
+                  <option value="21">Sports</option>
+                  <option value="22">Geography</option>
+                  <option value="23">History</option>
+                  <option value="24">Politics</option>
+                  <option value="25">Art</option>
+                  <option value="26">Famous People</option>
+                  <option value="27">Animals</option>
+                  <option value="28">Vehicles</option>
+                  <option value="29">Comics</option>
+                  <option value="30">Gadgets</option>
+                  <option value="31">Anime & Manga</option>
+                  <option value="32">Cartoons</option>
+                </select>
+                
+
                 <button className=' text-2xl w-64 px-5 py-3 bg-yellow-500 text-white font-semibold rounded-lg shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500' onClick={()=>saveConfig()}>Start</button>
               </div>
             </div>
