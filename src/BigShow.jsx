@@ -11,7 +11,7 @@ let lastDifficulty = "any";
 
 function BigShow() {
   const [start, setStart] = useState(false);
-  const [time, setTime] = useState(null);
+  const [time, setTime] = useState(lastTime);
   const [category, setCategory] = useState(lastCategory);
   const [difficulty, setDifficulty] = useState(lastDifficulty);
   const [questions, setQuestions] = useState(null);
@@ -125,17 +125,22 @@ function BigShow() {
     </>
   )
 }
-
+let powerUps = {
+  1 : true,
+  2 : true,
+  3 : true,
+  4 : true,
+}
 function QuestionBlock({questionData, next, number, restart, prices, time}){
   const navigate = useNavigate();
 
   const [hiddenIndex, setHiddenIndex] = useState(null);
   const [paused, setPaused] = useState(false);
   const [onReset, setOnReset] = useState(false);
-  const [powerUp1, setPowerUp1] = useState(true);
-  const [powerUp2, setPowerUp2] = useState(true);
-  const [powerUp3, setPowerUp3] = useState(true);
-  const [powerUp4, setPowerUp4] = useState(true);
+  const [powerUp1, setPowerUp1] = useState(powerUps[1]);
+  const [powerUp2, setPowerUp2] = useState(powerUps[2]);
+  const [powerUp3, setPowerUp3] = useState(powerUps[3]);
+  const [powerUp4, setPowerUp4] = useState(powerUps[4]);
   const [askTheAudience, setAskTheAudience] = useState(false);
 
   function getCrowdAnswer(correctAnswer, fakeAnswers) {
@@ -205,6 +210,7 @@ function QuestionBlock({questionData, next, number, restart, prices, time}){
     }while(randomNumber==answerIndex)
     setHiddenIndex(randomNumber);
     setPowerUp2(false);
+    powerUps[2]=false;
   }
 
   return(
@@ -238,7 +244,7 @@ function QuestionBlock({questionData, next, number, restart, prices, time}){
       <button className="w-full text-2xl  px-5 py-3 bg-blue-400 text-white font-semibold rounded-lg shadow-md  focus:outline-none focus:ring-2 focus:ring-yellow-500 hover:bg-blue-600" onClick={()=>{next(), setCorrect(null), setHiddenIndex(null)}} >Next!</button> 
       : correct == false ?
       <>
-        <button className="w-full text-2xl px-5 py-3 bg-blue-400 text-white font-semibold rounded-lg shadow-md  focus:outline-none focus:ring-2 focus:ring-yellow-500 hover:bg-blue-600" onClick={()=>{restart(), setCorrect(null), setHiddenIndex(null), setPowerUp1(true), setPowerUp2(true), setPowerUp3(true), setPowerUp4(true)}} >Try again</button>
+        <button className="w-full text-2xl px-5 py-3 bg-blue-400 text-white font-semibold rounded-lg shadow-md  focus:outline-none focus:ring-2 focus:ring-yellow-500 hover:bg-blue-600" onClick={()=>{restart(), setCorrect(null), setHiddenIndex(null), powerUps = { 1 : true, 2 : true, 3 : true, 4 : true }}} >Try again</button>
         <button className="w-full text-2xl px-5 py-3 bg-blue-400 text-white font-semibold rounded-lg shadow-md  focus:outline-none focus:ring-2 focus:ring-yellow-500 hover:bg-blue-600" onClick={() => navigate('/')} >Back to the menu</button>
       </> : null
       }
@@ -246,10 +252,10 @@ function QuestionBlock({questionData, next, number, restart, prices, time}){
       {
         correct!=false ? 
         <div className='flex gap-3'>
-          { powerUp1 && time!=-1? <button className='bg-blue-500 px-5 py-3 text-white font-semibold rounded-lg focus:outline-none shadow-md hover:bg-blue-600' onClick={()=>{setPaused(true), setPowerUp1(false)}}>Time-Out</button> : null }
+          { powerUp1 && time!=-1? <button className='bg-blue-500 px-5 py-3 text-white font-semibold rounded-lg focus:outline-none shadow-md hover:bg-blue-600' onClick={()=>{setPaused(true), setPowerUp1(false), powerUps[1]=false}}>Time-Out</button> : null }
           { powerUp2 ? <button className='bg-blue-500 px-5 py-3 text-white font-semibold rounded-lg focus:outline-none shadow-md hover:bg-blue-600' onClick={()=>deleteAnwer()}>Delete one answer</button> : null }
-          { powerUp3 ? <button className='bg-blue-500 px-5 py-3 text-white font-semibold rounded-lg focus:outline-none shadow-md hover:bg-blue-600' onClick={()=>{optionClick(true), setPowerUp3(false)}}>Skip question</button> : null }
-          { powerUp4 ? <button className='bg-blue-500 px-5 py-3 text-white font-semibold rounded-lg focus:outline-none shadow-md hover:bg-blue-600' onClick={()=>{setAskTheAudience(true), setPowerUp4(false)}}>Ask the Audience</button> : null }
+          { powerUp3 ? <button className='bg-blue-500 px-5 py-3 text-white font-semibold rounded-lg focus:outline-none shadow-md hover:bg-blue-600' onClick={()=>{optionClick(true), setPowerUp3(false), powerUps[3]=false}}>Skip question</button> : null }
+          { powerUp4 ? <button className='bg-blue-500 px-5 py-3 text-white font-semibold rounded-lg focus:outline-none shadow-md hover:bg-blue-600' onClick={()=>{setAskTheAudience(true), setPowerUp4(false), powerUps[4]=false}}>Ask the Audience</button> : null }
         </div> 
         : null
       }
