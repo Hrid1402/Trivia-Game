@@ -21,8 +21,6 @@ export function Dialog({start}){
   
     function saveConfig(){
       setOpen(!open);
-      console.log("time:" + selectedTime);
-      console.log("category: " + selectedCategory);
       start(selectedTime, selectedCategory, selectedDifficulty);
     }
     return(

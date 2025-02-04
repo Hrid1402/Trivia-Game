@@ -50,7 +50,6 @@ function AI_Trivia() {
       ];
 
     function nextQuestion(){
-        console.log("Next!!");
         setQuestions(questions.slice(1));
     }
 
@@ -60,7 +59,6 @@ function AI_Trivia() {
         loadingTheme.play();
         try {
             const questions = await responseAI(10, topic, `'${selectedDifficulty}'`, selectedLanguage);
-            console.log(questions);
             setQuestions(questions.results);
             totalQuestions = questions.results.length;
         } catch (error) {
@@ -82,7 +80,6 @@ function AI_Trivia() {
         setFileName(filename);
         try {
             const text = await extractTextFromPDF(file, "alphanumericwithspaceandpunctuation");
-            console.log("Extracted Text:", text);
             setTopic("the next document content:\n" + text);
             
         } catch (error) {

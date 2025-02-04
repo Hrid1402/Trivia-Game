@@ -93,7 +93,6 @@ function BigShow() {
     }
   }
   function nextQuestion(){
-    console.log("Next!!");
     setQuestions(questions.slice(1));
   }
 
@@ -107,7 +106,6 @@ function BigShow() {
       try {
         const response = await fetch(url);
         const data = await response.json();
-        console.log(data);
         if(data.results.length == 0){
           console.log('Error: No questions available with the selected characteristics.');
           setError(true);
