@@ -35,7 +35,7 @@ export async function responseAI(amount, topic, difficulty, language){
     }
     Return ONLY the JSON object as plain text, with NO formatting, NO code blocks, and NO extra text.
     `
-    const result = await model.generateContent([prompt]);
+    const result = await model.generateContent(prompt);
     console.log(result);
     const response = result.response.text();
     try{
